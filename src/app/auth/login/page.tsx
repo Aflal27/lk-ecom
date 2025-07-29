@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react'
+import React from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabaseClient'
 import { useRouter } from 'next/navigation'
@@ -25,8 +25,8 @@ export default function AuthPage() {
       if (error) throw error
       return data
     },
-    onError: (err: any) => setError(err.message || 'Login failed'),
-    onSuccess: (data: any) => {
+    onError: (err) => setError(err.message || 'Login failed'),
+    onSuccess: (data) => {
       setError('')
       if (data?.user) {
         const role = data.user.user_metadata?.role

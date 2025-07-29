@@ -31,7 +31,7 @@ export default function SignUpPage() {
         email: sellerEmail,
       })
     },
-    onError: (err: any) => setError(err.message || 'Registration failed'),
+    onError: (err) => setError(err.message || 'Registration failed'),
     onSuccess: () => {
       setError('')
       setSellerName('')
@@ -68,7 +68,7 @@ export default function SignUpPage() {
         password: customerPassword,
       })
     },
-    onError: (err: any) => setError(err.message || 'Registration failed'),
+    onError: (err) => setError(err.message || 'Registration failed'),
     onSuccess: () => {
       setError('')
       setCustomerName('')
