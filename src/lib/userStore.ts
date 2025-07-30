@@ -10,6 +10,10 @@ export type User = {
   sales?: number
   blocked?: boolean
   verify_seller?: boolean
+  group_name?: string
+  account_number?: string
+  bank_name?: string
+  image?: string
  
 }
 

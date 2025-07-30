@@ -2,7 +2,10 @@
 import React, { useState } from 'react'
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import ProfileSection from '@/components/seller/ProfileSection'
+import ProductsSection from '@/components/seller/ProductsSection'
+import OrdersSection from '@/components/seller/OrdersSection'
+import InventorySection from '@/components/seller/InventorySection'
 
 export default function SellerDashboard() {
   const [tab, setTab] = useState<
@@ -93,150 +96,10 @@ export default function SellerDashboard() {
               </h1>
             </CardHeader>
             <CardContent className='py-4'>
-              {tab === 'profile' && (
-                <section className='max-w-lg mx-auto'>
-                  <h2 className='text-xl font-semibold mb-4'>
-                    Profile & Account Details
-                  </h2>
-                  <form className='space-y-4'>
-                    <Input
-                      type='text'
-                      placeholder='Seller Name'
-                      className='bg-gray-50'
-                    />
-                    <Input
-                      type='text'
-                      placeholder='WhatsApp Group Name'
-                      className='bg-gray-50'
-                    />
-                    <Input
-                      type='email'
-                      placeholder='Email Address'
-                      className='bg-gray-50'
-                    />
-                    <Input
-                      type='text'
-                      placeholder='Bank Account Number'
-                      className='bg-gray-50'
-                    />
-                    <Input
-                      type='text'
-                      placeholder='Bank Name'
-                      className='bg-gray-50'
-                    />
-                    <Button
-                      type='submit'
-                      className='w-full bg-blue-600 text-white'
-                    >
-                      Update Profile
-                    </Button>
-                  </form>
-                </section>
-              )}
-              {tab === 'products' && (
-                <section>
-                  <div className='flex flex-col sm:flex-row items-center justify-between mb-4 gap-2'>
-                    <h2 className='text-xl font-semibold'>
-                      Add & Manage Products
-                    </h2>
-                    <Button className='bg-green-600 text-white w-full sm:w-auto'>
-                      + Add Product
-                    </Button>
-                  </div>
-                  <div className='overflow-x-auto'>
-                    <table className='w-full text-left bg-white rounded shadow text-sm'>
-                      <thead>
-                        <tr className='border-b'>
-                          <th className='py-2'>Product Name</th>
-                          <th className='py-2'>Price</th>
-                          <th className='py-2'>Stock</th>
-                          <th className='py-2'>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {/* Example row */}
-                        <tr>
-                          <td className='py-2'>Sample Product</td>
-                          <td className='py-2'>Rs. 1000</td>
-                          <td className='py-2'>20</td>
-                          <td className='py-2 flex gap-2'>
-                            <Button size='sm' variant='outline'>
-                              Edit
-                            </Button>
-                            <Button
-                              size='sm'
-                              variant='outline'
-                              className='text-red-600'
-                            >
-                              Delete
-                            </Button>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </section>
-              )}
-              {tab === 'orders' && (
-                <section>
-                  <h2 className='text-xl font-semibold mb-4'>
-                    Your Sales & Orders
-                  </h2>
-                  <div className='overflow-x-auto'>
-                    <table className='w-full text-left bg-white rounded shadow text-sm'>
-                      <thead>
-                        <tr className='border-b'>
-                          <th className='py-2'>Order ID</th>
-                          <th className='py-2'>Product</th>
-                          <th className='py-2'>Amount</th>
-                          <th className='py-2'>Status</th>
-                          <th className='py-2'>Date</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {/* Example row */}
-                        <tr>
-                          <td className='py-2'>#12345</td>
-                          <td className='py-2'>Sample Product</td>
-                          <td className='py-2'>Rs. 1000</td>
-                          <td className='py-2'>Completed</td>
-                          <td className='py-2'>2025-07-30</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </section>
-              )}
-              {tab === 'inventory' && (
-                <section>
-                  <h2 className='text-xl font-semibold mb-4'>
-                    Manage Inventory
-                  </h2>
-                  <div className='overflow-x-auto'>
-                    <table className='w-full text-left bg-white rounded shadow text-sm'>
-                      <thead>
-                        <tr className='border-b'>
-                          <th className='py-2'>Product</th>
-                          <th className='py-2'>Stock</th>
-                          <th className='py-2'>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {/* Example row */}
-                        <tr>
-                          <td className='py-2'>Sample Product</td>
-                          <td className='py-2'>20</td>
-                          <td className='py-2 flex gap-2'>
-                            <Button size='sm' variant='outline'>
-                              Update Stock
-                            </Button>
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </section>
-              )}
+              {tab === 'profile' && <ProfileSection />}
+              {tab === 'products' && <ProductsSection />}
+              {tab === 'orders' && <OrdersSection />}
+              {tab === 'inventory' && <InventorySection />}
             </CardContent>
           </Card>
         </div>
