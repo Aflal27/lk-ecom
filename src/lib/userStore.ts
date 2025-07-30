@@ -5,7 +5,11 @@ export type User = {
   email: string
   role?: string
   name?: string
-  [key: string]: any
+  username?: string
+  price_range?: number
+  sales?: number
+  blocked?: boolean
+  verify_seller?: boolean
 }
 
 interface UserState {
@@ -25,8 +29,8 @@ function getInitialUser(): User | null {
 export const useUserStore = create<UserState>((set) => ({
   user: getInitialUser(),
   setUser: (user) => {
-    // Remove password before saving to state/localStorage
-    const { password, ...safeUser } = user
+    // Type-safe omit password before saving
+    const { password, ...safeUser } = user as User & { password?: string }
     set({ user: safeUser })
     if (typeof window !== 'undefined') {
       localStorage.setItem('user', JSON.stringify(safeUser))

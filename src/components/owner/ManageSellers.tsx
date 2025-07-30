@@ -1,11 +1,24 @@
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabaseClient'
-import { useState } from 'react'
-import { useRef } from 'react'
+import { useState, useRef } from 'react'
+
+interface Seller {
+  id: number
+  name: string
+  email: string
+  group_name?: string
+  role: string
+  verify_seller?: boolean
+  username?: string
+  password?: string
+  price_range?: number
+  sales?: number
+  blocked?: boolean
+}
 
 export default function ManageSellers() {
   const [modalOpen, setModalOpen] = useState(false)
-  const [modalSeller, setModalSeller] = useState<any>(null)
+  const [modalSeller, setModalSeller] = useState<Seller | null>(null)
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [updating, setUpdating] = useState(false)
@@ -13,7 +26,7 @@ export default function ManageSellers() {
   const [tab, setTab] = useState<'new' | 'verified'>('new')
 
   // Fetch sellers from Supabase
-  const { data: sellers, isLoading } = useQuery({
+  const { data: sellers, isLoading } = useQuery<Seller[]>({
     queryKey: ['users'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -21,13 +34,13 @@ export default function ManageSellers() {
         .select('*')
         .eq('role', 'admin')
       if (error) throw error
-      return data || []
+      return (data as Seller[]) || []
     },
   })
 
   // Owner actions (scaffolded, not implemented)
   const verifySeller = useMutation({
-    mutationFn: async (seller: any) => {
+    mutationFn: async (seller: Seller) => {
       // Generate username and password
       const genUsername = seller.email.split('@')[0]
       const genPassword = Math.random().toString(36).slice(-8)
@@ -73,8 +86,8 @@ export default function ManageSellers() {
   })
 
   // Split sellers by verified status
-  const newSellers = (sellers || []).filter((s: any) => !s.verify_seller)
-  const verifiedSellers = (sellers || []).filter((s: any) => s.verify_seller)
+  const newSellers = (sellers || []).filter((s: Seller) => !s.verify_seller)
+  const verifiedSellers = (sellers || []).filter((s: Seller) => s.verify_seller)
 
   return (
     <section id='manage-sellers' className='mb-8'>
@@ -118,6 +131,7 @@ export default function ManageSellers() {
               className='bg-blue-600 text-white px-4 py-2 rounded mt-2 w-full font-semibold'
               disabled={updating}
               onClick={async () => {
+                if (!modalSeller) return
                 setUpdating(true)
                 await supabase
                   .from('users')
@@ -176,7 +190,7 @@ export default function ManageSellers() {
                   </td>
                 </tr>
               )}
-              {newSellers.map((seller: any) => (
+              {newSellers.map((seller: Seller) => (
                 <tr key={seller.id}>
                   <td className='py-2'>{seller.name}</td>
                   <td className='py-2'>{seller.group_name}</td>
@@ -214,74 +228,78 @@ export default function ManageSellers() {
                   </td>
                 </tr>
               )}
-              {verifiedSellers.map((seller: any) => (
-                <tr key={seller.id}>
-                  <td className='py-2'>{seller.name}</td>
-                  <td className='py-2'>{seller.group_name}</td>
-                  <td className='py-2'>{seller.email}</td>
-                  <td className='py-2'>
-                    <input
-                      type='number'
-                      defaultValue={seller.price_range}
-                      className='w-24 px-2 py-1 border rounded'
-                      onBlur={(e) =>
-                        setPriceRange.mutate({
-                          sellerId: seller.id,
-                          price: Number(e.target.value),
-                        })
-                      }
-                    />
-                  </td>
-                  <td className='py-2'>{seller.sales}</td>
-                  <td
-                    className={`py-2 ${
-                      seller.blocked ? 'text-red-600' : 'text-green-600'
-                    }`}
-                  >
-                    {seller.blocked ? 'Blocked' : 'Active'}
-                  </td>
-                  <td className='py-2 flex gap-2'>
-                    <button
-                      className={`px-2 py-1 rounded text-xs ${
-                        seller.sales >= seller.price_range
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-gray-100 text-gray-700'
+              {verifiedSellers.map((seller: Seller) => {
+                const sales = seller.sales ?? 0
+                const priceRange = seller.price_range ?? 0
+                return (
+                  <tr key={seller.id}>
+                    <td className='py-2'>{seller.name}</td>
+                    <td className='py-2'>{seller.group_name}</td>
+                    <td className='py-2'>{seller.email}</td>
+                    <td className='py-2'>
+                      <input
+                        type='number'
+                        defaultValue={priceRange}
+                        className='w-24 px-2 py-1 border rounded'
+                        onBlur={(e) =>
+                          setPriceRange.mutate({
+                            sellerId: seller.id,
+                            price: Number(e.target.value),
+                          })
+                        }
+                      />
+                    </td>
+                    <td className='py-2'>{sales}</td>
+                    <td
+                      className={`py-2 ${
+                        seller.blocked ? 'text-red-600' : 'text-green-600'
                       }`}
-                      disabled={seller.sales < seller.price_range}
                     >
-                      Request Transfer
-                    </button>
-                    <button
-                      className='px-2 py-1 bg-yellow-100 rounded text-yellow-700 text-xs'
-                      onClick={() => {
-                        setUsername(
-                          seller.username || seller.email.split('@')[0]
-                        )
-                        setPassword(seller.password || '')
-                        setModalSeller(seller)
-                        setModalOpen(true)
-                      }}
-                    >
-                      Edit Credentials
-                    </button>
-                    {seller.blocked ? (
+                      {seller.blocked ? 'Blocked' : 'Active'}
+                    </td>
+                    <td className='py-2 flex gap-2'>
                       <button
-                        className='px-2 py-1 bg-blue-100 rounded text-blue-700 text-xs'
-                        onClick={() => unblockSeller.mutate(seller.id)}
+                        className={`px-2 py-1 rounded text-xs ${
+                          sales >= priceRange
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-gray-100 text-gray-700'
+                        }`}
+                        disabled={sales < priceRange}
                       >
-                        Unblock
+                        Request Transfer
                       </button>
-                    ) : (
                       <button
-                        className='px-2 py-1 bg-red-100 rounded text-red-700 text-xs'
-                        onClick={() => blockSeller.mutate(seller.id)}
+                        className='px-2 py-1 bg-yellow-100 rounded text-yellow-700 text-xs'
+                        onClick={() => {
+                          setUsername(
+                            seller.username || seller.email.split('@')[0]
+                          )
+                          setPassword(seller.password || '')
+                          setModalSeller(seller)
+                          setModalOpen(true)
+                        }}
                       >
-                        Block
+                        Edit Credentials
                       </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
+                      {seller.blocked ? (
+                        <button
+                          className='px-2 py-1 bg-blue-100 rounded text-blue-700 text-xs'
+                          onClick={() => unblockSeller.mutate(seller.id)}
+                        >
+                          Unblock
+                        </button>
+                      ) : (
+                        <button
+                          className='px-2 py-1 bg-red-100 rounded text-red-700 text-xs'
+                          onClick={() => blockSeller.mutate(seller.id)}
+                        >
+                          Block
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         )}
