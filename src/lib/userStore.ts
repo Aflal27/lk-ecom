@@ -10,6 +10,7 @@ export type User = {
   sales?: number
   blocked?: boolean
   verify_seller?: boolean
+ 
 }
 
 interface UserState {
@@ -30,7 +31,9 @@ export const useUserStore = create<UserState>((set) => ({
   user: getInitialUser(),
   setUser: (user) => {
     // Type-safe omit password before saving
-    const { password, ...safeUser } = user as User & { password?: string }
+    const safeUser = { ...user }
+
+    delete (safeUser as { password?: string }).password
     set({ user: safeUser })
     if (typeof window !== 'undefined') {
       localStorage.setItem('user', JSON.stringify(safeUser))
