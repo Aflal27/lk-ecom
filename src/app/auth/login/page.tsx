@@ -8,32 +8,79 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useUserStore } from '@/lib/userStore'
 
 export default function AuthPage() {
   const [email, setEmail] = React.useState('')
   const [password, setPassword] = React.useState('')
   const [error, setError] = React.useState('')
-  const [roleMsg, setRoleMsg] = React.useState('')
   const router = useRouter()
+  const setUser = useUserStore((state) => state.setUser)
+  const user = useUserStore((state) => state.user)
+
+  React.useEffect(() => {
+    if (user) {
+      if (user.role === 'owner') {
+        router.replace('/owner')
+      } else if (user.role === 'admin') {
+        router.replace('/seller')
+      } else {
+        router.replace('/')
+      }
+    }
+  }, [user, router])
 
   const signInMutation = useMutation({
     mutationFn: async () => {
+      // Try customer login first (Supabase auth)
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
-      if (error) throw error
-      return data
+      if (!error && data?.user) {
+        // Customer login success
+        return { type: 'customer', data }
+      }
+      // If customer login fails, try users table for owner/admin
+      const { data: userRows, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .eq('password', password)
+        .single()
+      if (userError || !userRows) {
+        throw error || userError || new Error('Login failed')
+      }
+      // Owner/Admin login success
+      return { type: 'users', data: userRows }
     },
     onError: (err) => setError(err.message || 'Login failed'),
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       setError('')
-      if (data?.user) {
-        const role = data.user.user_metadata?.role
-        if (role === 'owner' || role === 'admin') {
+      if (data.type === 'customer') {
+        const user = data.data?.user || data.data?.session?.user
+        setUser({
+          id: user.id,
+          email: user.email,
+          role: user.user_metadata?.role || 'customer',
+          name: user.user_metadata?.name,
+        })
+        router.push('/')
+      } else if (data.type === 'users') {
+        const profile = data.data
+        setUser({
+          id: profile.id,
+          email: profile.email,
+          role: profile.role,
+          name: profile.name,
+          ...profile,
+        })
+        if (profile.role === 'owner') {
           router.push('/owner')
+        } else if (profile.role === 'admin') {
+          router.push('/seller')
         } else {
-          setRoleMsg('You are logged in as a customer/seller.')
+          router.push('/')
         }
       }
     },
@@ -86,9 +133,7 @@ export default function AuthPage() {
                 </a>
               </div>
               {error && <div className='text-red-400 text-sm'>{error}</div>}
-              {roleMsg && (
-                <div className='text-green-400 text-sm'>{roleMsg}</div>
-              )}
+
               <Button
                 type='submit'
                 onClick={handleSignIn}

@@ -1,9 +1,9 @@
 import { supabase } from './supabaseClient'
 
 // Seller registration: just insert seller info, no password
-export async function registerSeller({ name, groupName, email }: { name: string; groupName: string; email: string }) {
-  const { data, error } = await supabase.from('sellers').insert([
-    { name, group_name: groupName, email }
+export async function registerSeller({ name, groupName, email, phone }: { name: string; groupName: string; email: string; phone: string }) {
+  const { data, error } = await supabase.from('users').insert([
+    { name, group_name: groupName, email, phone, role: 'admin' }
   ])
   if (error) throw error
   return data
@@ -15,9 +15,21 @@ export async function registerCustomer({ name, email, password }: { name: string
     email,
     password,
     options: {
-      data: { name }
+      data: { name, role: 'user' }
     }
   })
   if (error) throw error
+  // Insert into users table if signup succeeded
+  if (data?.user?.id) {
+    const { error: userError } = await supabase.from('users').insert([
+      {
+        auth_id: data.user.id, 
+        name,
+        email,
+        role: 'user'
+      }
+    ])
+    if (userError) throw userError
+  }
   return data
 }
