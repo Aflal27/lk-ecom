@@ -14,6 +14,8 @@ export type User = {
   account_number?: string
   bank_name?: string
   image?: string
+  admin_for_seller_id?: number | string
+  seller_id?: number | string
  
 }
 

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { useUserStore } from '@/lib/userStore'
 import React from 'react'
 import Image from 'next/image'
-import { uploadToCloudinary } from '@/lib/cloudinary'
+import { uploadToCloudinary, deleteFromCloudinary } from '@/lib/cloudinary'
 import { toast } from 'react-hot-toast'
 
 export default function ProfileSection() {
@@ -42,6 +42,15 @@ export default function ProfileSection() {
     reader.readAsDataURL(file)
     setUploading(true)
     try {
+      // Delete old image from Cloudinary if exists and is a Cloudinary URL
+      if (imageUrl && imageUrl.includes('cloudinary.com')) {
+        try {
+          await deleteFromCloudinary(imageUrl)
+        } catch {
+          // Optionally handle error
+        }
+      }
+      // Upload new image
       const url = await uploadToCloudinary(file)
       setImageUrl(url)
     } catch {
@@ -78,9 +87,9 @@ export default function ProfileSection() {
             <Image
               src={selectedImage || imageUrl}
               alt='Profile Image'
-              width={96}
-              height={96}
-              className='rounded-full object-cover border shadow'
+              width={100}
+              height={400}
+              className=' object-fill rounded-b-xl w-[180px] h-[200px] border shadow'
             />
           )}
           <input

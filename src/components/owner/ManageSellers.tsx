@@ -48,15 +48,26 @@ export default function ManageSellers() {
       setPassword(genPassword)
       setModalSeller(seller)
       setModalOpen(true)
-      // Mark seller as verified and save credentials
-      await supabase
-        .from('users')
-        .update({
-          verify_seller: true,
-          username: genUsername,
-          password: genPassword,
-        })
+      // Check if seller exists in sellers table
+      const { data: sellerRow } = await supabase
+        .from('sellers')
+        .select('id')
         .eq('id', seller.id)
+        .single()
+      const updateFields: {
+        name: string
+        password: string
+        verify_seller: boolean
+        admin_for_seller_id?: number
+      } = {
+        name: genUsername,
+        password: genPassword,
+        verify_seller: true,
+      }
+      if (sellerRow && sellerRow.id) {
+        updateFields.admin_for_seller_id = sellerRow.id
+      }
+      await supabase.from('users').update(updateFields).eq('id', seller.id)
       // TODO: Send username/password to seller's email
     },
   })
@@ -133,9 +144,45 @@ export default function ManageSellers() {
               onClick={async () => {
                 if (!modalSeller) return
                 setUpdating(true)
+                // Ensure seller exists in sellers table before updating admin_for_seller_id
+                let sellerId = modalSeller.id
+                const { data: sellerRowData } = await supabase
+                  .from('sellers')
+                  .select('id')
+                  .eq('id', sellerId)
+                  .single()
+                const sellerRow = sellerRowData
+                if (!sellerRow) {
+                  // Insert seller into sellers table
+                  const { data: inserted } = await supabase
+                    .from('sellers')
+                    .insert({
+                      name: modalSeller.name,
+                      admin_user_id: modalSeller.id,
+                      group_name: modalSeller.group_name,
+                    })
+                    .select('id')
+                    .single()
+                  if (inserted && inserted.id) {
+                    sellerId = inserted.id
+                  }
+                } else {
+                  sellerId = sellerRow.id
+                }
+                const updateFields: {
+                  name: string
+                  password: string
+                  verify_seller: boolean
+                  admin_for_seller_id?: number
+                } = {
+                  name: username,
+                  password,
+                  verify_seller: true,
+                  admin_for_seller_id: sellerId,
+                }
                 await supabase
                   .from('users')
-                  .update({ name: username, password, verify_seller: true })
+                  .update(updateFields)
                   .eq('id', modalSeller.id)
                 setUpdating(false)
                 setModalOpen(false)

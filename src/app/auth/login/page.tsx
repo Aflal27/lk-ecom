@@ -22,8 +22,10 @@ export default function AuthPage() {
     if (user) {
       if (user.role === 'owner') {
         router.replace('/owner')
-      } else if (user.role === 'admin') {
-        router.replace('/seller')
+      } else if (user.role === 'admin' && user.admin_for_seller_id) {
+        router.replace(`/seller/${user.admin_for_seller_id}/admin`)
+      } else if (user.role === 'customer' && user.seller_id) {
+        router.replace(`/seller/${user.seller_id}`)
       } else {
         router.replace('/')
       }
@@ -64,6 +66,8 @@ export default function AuthPage() {
           email: user.email,
           role: user.user_metadata?.role || 'customer',
           name: user.user_metadata?.name,
+          seller_id: user.user_metadata?.seller_id,
+          admin_for_seller_id: user.user_metadata?.admin_for_seller_id,
         })
         router.push('/')
       } else if (data.type === 'users') {
@@ -73,12 +77,19 @@ export default function AuthPage() {
           email: profile.email,
           role: profile.role,
           name: profile.name,
+          seller_id: profile.seller_id,
+          admin_for_seller_id: profile.admin_for_seller_id,
           ...profile,
         })
         if (profile.role === 'owner') {
           router.push('/owner')
-        } else if (profile.role === 'admin') {
-          router.push('/seller')
+        } else if (
+          profile.role === 'admin' &&
+          profile.admin_for_seller_id
+        ) {
+          router.push(`/seller/${profile.admin_for_seller_id}/admin`)
+        } else if (profile.role === 'customer' && profile.seller_id) {
+          router.push(`/seller/${profile.seller_id}`)
         } else {
           router.push('/')
         }

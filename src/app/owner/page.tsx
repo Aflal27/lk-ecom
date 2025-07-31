@@ -246,15 +246,7 @@ export default function OwnerDashboard() {
         )}
         {activeSection === 'manage-sellers' && <ManageSellers />}
         {/* Add more sections here for other sidebar items as needed */}
-        {activeSection === 'manage-admins' && (
-          <div className='bg-white rounded-xl shadow p-6'>
-            <h2 className='text-2xl font-bold mb-4'>Manage Admins</h2>
-            {/* TODO: Add Manage Admins content here */}
-            <div className='text-gray-500'>
-              Admin management features coming soon.
-            </div>
-          </div>
-        )}
+
         {activeSection === 'approve-products' && (
           <div className='bg-white rounded-xl shadow p-6'>
             <h2 className='text-2xl font-bold mb-4'>Approve Products</h2>

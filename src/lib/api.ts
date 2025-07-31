@@ -10,23 +10,24 @@ export async function registerSeller({ name, groupName, email, phone }: { name: 
 }
 
 // Customer registration: sign up with email/password
-export async function registerCustomer({ name, email, password }: { name: string; email: string; password: string }) {
+export async function registerCustomer({ name, email, password, seller_id }: { name: string; email: string; password: string; seller_id: string }) {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      data: { name, role: 'user' }
+      data: { name, role: 'customer', seller_id }
     }
   })
   if (error) throw error
-  // Insert into users table if signup succeeded
+  // Optionally, insert into users table for tracking (if needed)
   if (data?.user?.id) {
     const { error: userError } = await supabase.from('users').insert([
       {
-        auth_id: data.user.id, 
+        auth_id: data.user.id,
         name,
         email,
-        role: 'user'
+        role: 'customer',
+        seller_id
       }
     ])
     if (userError) throw userError

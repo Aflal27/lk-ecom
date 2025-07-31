@@ -1,10 +1,11 @@
 'use client'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import AppToaster from '@/components/ui/toaster'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useMutation } from '@tanstack/react-query'
 import { registerSeller, registerCustomer } from '@/lib/api'
+import { supabase } from '@/lib/supabaseClient'
 import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -25,6 +26,12 @@ export default function SignUpPage() {
   const [customerPassword, setCustomerPassword] = useState('')
   const [customerConfirm, setCustomerConfirm] = useState('')
   const [error, setError] = useState('')
+  const [sellerId, setSellerId] = useState('')
+  const [sellerInfo, setSellerInfo] = useState<{
+    id: string
+    name: string
+    groupName?: string
+  } | null>(null)
   // Removed unused loading state
 
   const sellerMutation = useMutation({
@@ -86,6 +93,7 @@ export default function SignUpPage() {
         name: customerName,
         email: customerEmail,
         password: customerPassword,
+        seller_id: sellerId,
       })
     },
     onError: (err) => setError(err.message || 'Registration failed'),
@@ -95,6 +103,8 @@ export default function SignUpPage() {
       setCustomerEmail('')
       setCustomerPassword('')
       setCustomerConfirm('')
+      setSellerId('')
+      setSellerInfo(null)
       router.push('/auth/login')
     },
   })
@@ -128,7 +138,31 @@ export default function SignUpPage() {
     e.preventDefault()
     setError('')
     if (!validateCustomer()) return
+    if (!sellerId) {
+      setError('Seller not selected. Please use a valid invite link.')
+      return
+    }
     customerMutation.mutate()
+  }
+  // Read seller from invite link
+  const searchParams = useSearchParams()
+  useEffect(() => {
+    const sellerParam = searchParams?.get('seller')
+    if (sellerParam) {
+      setSellerId(sellerParam)
+      // Fetch seller info for confirmation (optional, can show name/group)
+      fetchSellerInfo(sellerParam)
+    }
+  }, [searchParams])
+
+  async function fetchSellerInfo(id: string) {
+    const { data, error } = await supabase
+      .from('sellers')
+      .select('id, name, groupName')
+      .eq('id', id)
+      .single()
+    if (!error && data) setSellerInfo(data)
+    else setSellerInfo(null)
   }
 
   return (
@@ -222,6 +256,23 @@ export default function SignUpPage() {
                 </form>
               ) : (
                 <form className='space-y-4' onSubmit={handleCustomerSubmit}>
+                  {/* Show seller info if present */}
+                  {sellerInfo && (
+                    <div className='mb-2 p-2 rounded bg-neutral-800 text-blue-300 text-sm'>
+                      <span>
+                        Seller: <b>{sellerInfo.name}</b>
+                      </span>
+                      {sellerInfo.groupName ? (
+                        <span className='ml-2'>({sellerInfo.groupName})</span>
+                      ) : null}
+                    </div>
+                  )}
+                  {!sellerId && (
+                    <div className='mb-2 p-2 rounded bg-red-900 text-red-300 text-sm'>
+                      Seller not selected. Please use a valid invite link from
+                      your seller.
+                    </div>
+                  )}
                   <Input
                     type='text'
                     placeholder='Name'
@@ -258,7 +309,7 @@ export default function SignUpPage() {
                   <Button
                     type='submit'
                     className='w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded'
-                    disabled={customerMutation.isPending}
+                    disabled={customerMutation.isPending || !sellerId}
                   >
                     Register Customer
                   </Button>
