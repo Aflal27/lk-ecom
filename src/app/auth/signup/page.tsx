@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import toast from 'react-hot-toast'
 import AppToaster from '@/components/ui/toaster'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -12,7 +12,8 @@ import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 import Link from 'next/link'
 
-export default function SignUpPage() {
+// Move all logic to a child component
+function SignUpPageInner() {
   const router = useRouter()
   const [type, setType] = useState<'seller' | 'customer'>('seller')
   // Seller fields
@@ -32,8 +33,7 @@ export default function SignUpPage() {
     name: string
     groupName?: string
   } | null>(null)
-  // Removed unused loading state
-
+  // ...existing code...
   const sellerMutation = useMutation({
     mutationFn: async () => {
       return await registerSeller({
@@ -58,7 +58,7 @@ export default function SignUpPage() {
       }, 2000)
     },
   })
-
+  // ...existing code...
   function validateSeller() {
     if (
       !sellerName.trim() ||
@@ -79,14 +79,14 @@ export default function SignUpPage() {
     }
     return true
   }
-
+  // ...existing code...
   const handleSellerSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     if (!validateSeller()) return
     sellerMutation.mutate()
   }
-
+  // ...existing code...
   const customerMutation = useMutation({
     mutationFn: async () => {
       return await registerCustomer({
@@ -108,7 +108,7 @@ export default function SignUpPage() {
       router.push('/auth/login')
     },
   })
-
+  // ...existing code...
   function validateCustomer() {
     if (
       !customerName.trim() ||
@@ -133,7 +133,7 @@ export default function SignUpPage() {
     }
     return true
   }
-
+  // ...existing code...
   const handleCustomerSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
@@ -144,7 +144,7 @@ export default function SignUpPage() {
     }
     customerMutation.mutate()
   }
-  // Read seller from invite link
+  // ...existing code...
   const searchParams = useSearchParams()
   useEffect(() => {
     const sellerParam = searchParams?.get('seller')
@@ -154,7 +154,7 @@ export default function SignUpPage() {
       fetchSellerInfo(sellerParam)
     }
   }, [searchParams])
-
+  // ...existing code...
   async function fetchSellerInfo(id: string) {
     const { data, error } = await supabase
       .from('sellers')
@@ -164,7 +164,7 @@ export default function SignUpPage() {
     if (!error && data) setSellerInfo(data)
     else setSellerInfo(null)
   }
-
+  // ...existing code...
   return (
     <>
       <AppToaster />
@@ -369,5 +369,13 @@ export default function SignUpPage() {
         </div>
       </main>
     </>
+  )
+}
+
+export default function SignUpPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignUpPageInner />
+    </Suspense>
   )
 }
