@@ -456,7 +456,7 @@ export default function ProductsSection() {
                       ></path>
                     </svg>
                     <span className='text-gray-400 text-base'>
-                      Loading products...
+                      Loading products....
                     </span>
                   </div>
                 </td>
