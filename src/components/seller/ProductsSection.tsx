@@ -3,90 +3,7 @@ import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabaseClient'
 import { useState, useRef, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { RichTextEditor } from '@mantine/tiptap'
-import { useEditor } from '@tiptap/react'
-import StarterKit from '@tiptap/starter-kit'
-import Link from '@tiptap/extension-link'
-import Placeholder from '@tiptap/extension-placeholder'
-import '@mantine/tiptap/styles.css'
 import Image from 'next/image'
-
-// Mantine Tiptap RichTextEditor wrapper
-type TiptapEditorProps = {
-  value: string
-  onChange: (v: string) => void
-  placeholder?: string
-}
-
-function TiptapEditor({ value, onChange, placeholder }: TiptapEditorProps) {
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Link.configure({
-        openOnClick: false,
-      }),
-      Placeholder.configure({
-        placeholder: placeholder || 'Type product description here...',
-      }),
-    ],
-    content: value,
-    onUpdate: ({ editor }) => {
-      onChange(editor.getHTML())
-    },
-    editable: true,
-    autofocus: false,
-    immediatelyRender: false, // Required for SSR
-  })
-
-  if (!mounted)
-    return (
-      <div className='border p-3 min-h-[100px] bg-gray-50'>
-        Loading editor...
-      </div>
-    )
-
-  return (
-    <RichTextEditor editor={editor} className='min-h-[200px]'>
-      <RichTextEditor.Toolbar sticky stickyOffset={60}>
-        <RichTextEditor.ControlsGroup>
-          <RichTextEditor.Bold />
-          <RichTextEditor.Italic />
-          <RichTextEditor.Underline />
-          <RichTextEditor.Strikethrough />
-          <RichTextEditor.ClearFormatting />
-          <RichTextEditor.Code />
-        </RichTextEditor.ControlsGroup>
-
-        <RichTextEditor.ControlsGroup>
-          <RichTextEditor.H1 />
-          <RichTextEditor.H2 />
-          <RichTextEditor.H3 />
-          <RichTextEditor.H4 />
-        </RichTextEditor.ControlsGroup>
-
-        <RichTextEditor.ControlsGroup>
-          <RichTextEditor.Blockquote />
-          <RichTextEditor.Hr />
-          <RichTextEditor.BulletList />
-          <RichTextEditor.OrderedList />
-        </RichTextEditor.ControlsGroup>
-
-        <RichTextEditor.ControlsGroup>
-          <RichTextEditor.Link />
-          <RichTextEditor.Unlink />
-        </RichTextEditor.ControlsGroup>
-      </RichTextEditor.Toolbar>
-
-      <RichTextEditor.Content />
-    </RichTextEditor>
-  )
-}
 
 const PAGE_SIZE = 10
 
@@ -543,7 +460,7 @@ export default function ProductsSection() {
               {error && (
                 <div className='text-red-400 text-sm mb-2'>{error}</div>
               )}
-              <form className='space-y-3 mt-[130px]' onSubmit={handleSave}>
+              <form className='space-y-3 ' onSubmit={handleSave}>
                 <div className='flex flex-col md:flex-row gap-6'>
                   {/* Left Side: Product Details */}
                   <div className='flex-1 space-y-3'>
@@ -727,14 +644,16 @@ export default function ProductsSection() {
                         Product Description
                       </h4>
                       <div className='min-h-[180px] border-blue-300 rounded-lg overflow-hidden bg-blue-50 focus-within:border-blue-500 transition-all p-2 sm:p-3'>
-                        <TiptapEditor
+                        <textarea
+                          name='description'
                           value={
                             typeof form.description === 'string'
                               ? form.description
                               : ''
                           }
-                          onChange={handleDescriptionChange}
+                          onChange={handleFormChange}
                           placeholder='Type product description here...'
+                          className='border rounded px-3 py-2 w-full min-h-[120px] text-base bg-white'
                         />
                       </div>
                     </div>
