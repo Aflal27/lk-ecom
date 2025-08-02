@@ -1,6 +1,7 @@
 'use client'
 import React, { useState } from 'react'
 import ManageSellers from '@/components/owner/ManageSellers'
+import CategoryManager from '@/components/owner/CategoryManager'
 
 export default function OwnerDashboard() {
   const [activeSection, setActiveSection] = useState('dashboard')
@@ -47,6 +48,18 @@ export default function OwnerDashboard() {
                 onClick={() => setActiveSection('manage-sellers')}
               >
                 Manage Seller
+              </button>
+            </li>
+            <li>
+              <button
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg w-full text-left ${
+                  activeSection === 'category-manage'
+                    ? 'text-blue-700 font-semibold'
+                    : 'hover:bg-gray-100'
+                }`}
+                onClick={() => setActiveSection('category-manage')}
+              >
+                Category Manage
               </button>
             </li>
             <li>
@@ -245,7 +258,7 @@ export default function OwnerDashboard() {
           </>
         )}
         {activeSection === 'manage-sellers' && <ManageSellers />}
-        {/* Add more sections here for other sidebar items as needed */}
+        {activeSection === 'category-manage' && <CategoryManager />}
 
         {activeSection === 'approve-products' && (
           <div className='bg-white rounded-xl shadow p-6'>
